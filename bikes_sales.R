@@ -1,36 +1,36 @@
 #install.packages("RMySQL")
 library(RMySQL)
-#koneksi
+#connect
 con <- dbConnect(MySQL(), user="root", password="", host="localhost",
                  dbname="bikes_sales")
-#Konstruksi SQL
+# SQL
 sql <- "SELECT * FROM `bikes`"
 
-#Mengirimkan query
+#send query
 req_sql <- tryCatch(dbSendQuery(con, sql), finally = print("query ok"))
 
-#Mengambil data
+#get data
 data.bikes <- fetch(req_sql, n=-1)
 ######
-#Konstruksi SQL
+#SQL
 sql <- "SELECT * FROM `bikeshops`"
 
-#Mengirimkan query
+#send query
 req_sql <- tryCatch(dbSendQuery(con, sql), finally = print("query ok"))
 
-#Mengambil data
+#get data
 data.customer <- fetch(req_sql, n=-1)
 ######
-#Konstruksi SQL
+#SQL
 sql <- "SELECT * FROM `orders`"
 
-#Mengirimkan query
+#send query
 req_sql <- tryCatch(dbSendQuery(con, sql), finally = print("query ok"))
 
-#Mengambil data
+#get data
 data.order <- fetch(req_sql, n=-1)
 
-#Menutup Koneksi
+#close connection
 all_cons <- dbListConnections(MySQL())
 for(con in all_cons) dbDisconnect(con)
 
@@ -71,12 +71,12 @@ hist(data_sales_bikes$price,
      labels=TRUE)
 val <- boxplot(data_sales_bikes$price,
                col="red",
-               main="Boxplot for Descriptive Analysis of Age")
+               main="Boxplot for Descriptive Analysis of Price")
 summary(val$out)
 plot(density(log10(data_sales_bikes$price)),
      col="yellow",
-     main="Density Plot for Annual Income",
-     xlab="Annual Income Class",
+     main="Density Plot for Price",
+     xlab="Price",
      ylab="Density")
 polygon(density(data_sales_bikes$price),
         col="#ccff66")
@@ -103,18 +103,13 @@ sales_bikes$frame <- as.factor(sales_bikes$frame)
 sales_bikes$price.category <- as.factor(sales_bikes$price.category)
 str(sales_bikes)
 atribut_use <- c("model","category1","category2","frame","price","price.category")
-library(cluster) # for gower similarity and pam
-library(Rtsne) # for t-SNE plot
+###
+library(cluster)
+library(Rtsne) 
 set.seed(200)
-# Remove college name before clustering
 gower_dist <- daisy(sales_bikes[atribut_use],
                     metric = "gower",
                     type = list(logratio = 5))
-
-# Check attributes to ensure the correct methods are being used
-# (I = interval, N = nominal)
-# Note that despite logratio being called, 
-# the type remains coded as "I"
 summary(gower_dist)
 ########
 data_gower <- as.matrix(gower_dist)
@@ -148,12 +143,3 @@ sales_bikes[pam_fit$medoids, ]
 #######
 sales_bikes$cluster <- pam_fit$clustering
 ######
-# tsne_obj <- Rtsne(gower_dist, is_distance = TRUE)
-# tsne_data <- tsne_obj$Y %>%
-#   data.frame() %>%
-#   setNames(c("X", "Y")) %>%
-#   mutate(cluster = factor(pam_fit$clustering),
-#          name = sales_bikes$bikeshop.name)
-# 
-# ggplot(aes(x = X, y = Y), data = tsne_data) +
-#   geom_point(aes(color = cluster))
